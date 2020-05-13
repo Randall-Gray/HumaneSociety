@@ -293,46 +293,58 @@ namespace HumaneSociety
             }
         }
         
-        // TODO: Animal Multi-Trait Search
-        internal static IQueryable<Animal> SearchForAnimalsByMultipleTraits(Dictionary<int, string> updates) // parameter(s)?
+        // Animal Multi-Trait Search
+        internal static IQueryable<Animal> SearchForAnimalsByMultipleTraits(Dictionary<int, string> updates)
         {
-            throw new NotImplementedException();
+            IQueryable<Animal> animalsFromDb = db.Animals;     // get all animals.
 
-            //var animalsFromDb = db.Animals.Where();
+            foreach (KeyValuePair<int, string> update in updates)
+            {
+                switch (update.Key)
+                {
+                    case 1:
+                        try 
+                        { 
+                            var categoriesFromDb = db.Categories.Where(c => c.Name == update.Value); 
+                            foreach( Category category in categoriesFromDb)  
+                            {
+                                animalsFromDb = animalsFromDb.Where(a => a.CategoryId == category.CategoryId);
+                            }
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            Console.WriteLine("The Catagory passed in does not exists.");
+                            return animalsFromDb;
+                        }
+                        break;
+                    case 2:
+                        animalsFromDb = animalsFromDb.Where(a => a.Name == update.Value);
+                        break;
+                    case 3:
+                        animalsFromDb = animalsFromDb.Where(a => a.Age == int.Parse(update.Value));
+                        break;
+                    case 4:
+                        animalsFromDb = animalsFromDb.Where(a => a.Demeanor == update.Value);
+                        break;
+                    case 5:
+                        animalsFromDb = animalsFromDb.Where(a => a.KidFriendly == (update.Value == "true"));
+                        break;
+                    case 6:
+                        animalsFromDb = animalsFromDb.Where(a => a.PetFriendly == (update.Value == "true"));
+                        break;
+                    case 7:
+                        animalsFromDb = animalsFromDb.Where(a => a.Weight == int.Parse(update.Value));
+                        break;
+                    case 8:
+                        animalsFromDb = animalsFromDb.Where(a => a.AnimalId == int.Parse(update.Value));
+                        break;
+                    default:
+                        throw new InvalidOperationException();
+                        break;
+                }
+            }
 
-            //foreach (KeyValuePair<int, string> update in updates)
-            //{
-            //    switch (update.Key)
-            //    {
-            //        case 1:
-            //            searchParameters.Add(1, GetStringData("category", "the animal's"));
-            //            break;
-            //        case 2:
-            //            searchParameters.Add(2, GetStringData("name", "the animal's"));
-            //            break;
-            //        case 3:
-            //            searchParameters.Add(3, GetIntegerData("age", "the animal's").ToString());
-            //            break;
-            //        case 4:
-            //            searchParameters.Add(4, GetStringData("demeanor", "the animal's"));
-            //            break;
-            //        case 5:
-            //            searchParameters.Add(5, GetBitData("the animal", "kid friendly").ToString());
-            //            break;
-            //        case 6:
-            //            searchParameters.Add(6, GetBitData("the animal", "pet friendly").ToString());
-            //            break;
-            //        case 7:
-            //            searchParameters.Add(7, GetIntegerData("weight", "the animal's").ToString());
-            //            break;
-            //        case 8:
-            //            searchParameters.Add(8, GetIntegerData("ID", "the animal's").ToString());
-            //            break;
-            //        default:
-            //            throw new InvalidOperationException();
-            //            break;
-            //    }
-            //}
+            return animalsFromDb;
         }
 
         // TODO: Misc Animal Things
