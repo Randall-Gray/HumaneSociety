@@ -164,49 +164,98 @@ namespace HumaneSociety
 
         //// TODO Items: ////
         
-        // TODO: Allow any of the CRUD operations to occur here
+        // Allow any of the CRUD operations to occur here
         internal static void RunEmployeeQueries(Employee employee, string crudOperation)
         {
             switch (crudOperation)
             {
                 case "create":
-                    AddEmployee(employee);      // no UserName, Password included.
+                    AddEmployee(employee);
                     break;
                 case "read":
-                    DisplayEmployee(employee);   // employee only contains EmployeeNumber
+                    DisplayEmployee(employee);
                     break;
                 case "update":
-                    UpdateEmployee(employee);   // no UserName, Password included
+                    UpdateEmployee(employee);
                     break;
                 case "delete":
-                    DeleteEmployee(employee);   // LastName and EmployeeNumber is given
+                    DeleteEmployee(employee);
                     break;
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        internal static void AddEmployee(Employee employee)      // no UserName, Password included.
+        internal static void AddEmployee(Employee employee)
         {
+            db.Employees.InsertOnSubmit(employee);
 
+            db.SubmitChanges();
         }
 
         internal static void DisplayEmployee(Employee employee)   // employee only contains EmployeeNumber
         {
-
+            try
+            {
+                Employee employeeFromDb = db.Employees.Where(e => e.EmployeeNumber == employee.EmployeeNumber).Single();
+                UserInterface.DisplayEmployeeInfo(employeeFromDb);
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("No employee exists with that employee number.");
+            }
         }
 
-        internal static void UpdateEmployee(Employee employee)   // no UserName, Password included
+        internal static void UpdateEmployee(Employee employee)
         {
+            Employee employeeFromDb = null;
 
+            try
+            {
+                employeeFromDb = db.Employees.Where(e => e.EmployeeNumber == employee.EmployeeNumber).Single();
+                
+                employeeFromDb.FirstName = employee.FirstName;
+                employeeFromDb.LastName = employee.LastName;
+                employeeFromDb.Email = employee.Email;
+                
+                db.SubmitChanges();
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("No employee exists with that employee number.");
+            }
         }
 
-        internal static void DeleteEmployee(Employee employee)   // LastName and EmployeeNumber is given
+        internal static void DeleteEmployee(Employee employee)   // LastName and EmployeeNumber is given to make sure right employee
         {
+            Employee employeeFromDb = null;
 
+            try
+            {
+                employeeFromDb = db.Employees.Where(e => e.EmployeeNumber == employee.EmployeeNumber && e.LastName == employee.LastName).Single();
+
+                ClearAnimalsEmployeeIds(employeeFromDb);
+
+                db.Employees.DeleteOnSubmit(employeeFromDb);
+                db.SubmitChanges();
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("No employee exists with that last name and employee number.");
+            }
         }
 
-        // TODO: Animal CRUD Operations
+        internal static void ClearAnimalsEmployeeIds(Employee employee)
+        {
+            var animalsFromDb = db.Animals.Where(a => a.EmployeeId == employee.EmployeeId);
+
+            foreach (Animal animal in animalsFromDb)
+                animal.EmployeeId = default(int);
+
+            db.SubmitChanges();
+        }
+
+        // Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
             db.Animals.InsertOnSubmit(animal);
@@ -237,7 +286,7 @@ namespace HumaneSociety
             }
 
             UpdateAnimal(animalFromDb, updates);
-            // submit changes
+
             db.SubmitChanges();
         }
 
@@ -282,7 +331,7 @@ namespace HumaneSociety
             if (animalFromDb != null)
             {
                 // Remove all references to this animal from db.
-                RemoveRoom(animalFromDb.AnimalId);
+                RemoveAnimalFromRoom(animalFromDb.AnimalId);
                 RemoveShots(animalFromDb);
                 Adoption adoptionFromDb = GetAdoption(animalFromDb.AnimalId);
                 if (adoptionFromDb != null)
@@ -347,7 +396,7 @@ namespace HumaneSociety
             return animalsFromDb;
         }
 
-        // TODO: Misc Animal Things
+        // Misc Animal Things
         internal static int GetCategoryId(string categoryName)
         {
             try
@@ -368,13 +417,13 @@ namespace HumaneSociety
             return roomFromDb;
         }
 
-        internal static void RemoveRoom(int animalId)
+        internal static void RemoveAnimalFromRoom(int animalId)
         {
             Room roomFromDb = GetRoom(animalId);
 
             if (roomFromDb != null)
             {
-                db.Rooms.DeleteOnSubmit(roomFromDb);
+                roomFromDb.AnimalId = default(int);
                 db.SubmitChanges();
             }
         }
@@ -392,7 +441,7 @@ namespace HumaneSociety
             }
         }
 
-        // TODO: Adoption CRUD Operations
+        // Adoption CRUD Operations
         internal static void Adopt(Animal animal, Client client)
         {
             Adoption newAdoption = new Adoption();
@@ -447,7 +496,7 @@ namespace HumaneSociety
             return adoptionFromDb;
         }
 
-        // TODO: Shots Stuff
+        // Shots Stuff
         internal static IQueryable<AnimalShot> GetShots(Animal animal)
         {
             return db.AnimalShots.Where(s => s.AnimalId == animal.AnimalId);
