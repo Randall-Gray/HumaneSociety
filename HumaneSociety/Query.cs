@@ -245,6 +245,7 @@ namespace HumaneSociety
             }
         }
 
+        // Employee no longer works there so clear their animal assignments.
         internal static void ClearAnimalsEmployeeIds(Employee employee)
         {
             var animalsFromDb = db.Animals.Where(a => a.EmployeeId == employee.EmployeeId);
@@ -265,7 +266,7 @@ namespace HumaneSociety
 
         internal static Animal GetAnimalByID(int id)
         {
-            Animal animalFromDb = db.Animals.Where(a => a.AnimalId == id).Single();
+            Animal animalFromDb = db.Animals.Where(a => a.AnimalId == id).FirstOrDefault();
 
             return animalFromDb;
         }
@@ -297,7 +298,7 @@ namespace HumaneSociety
                 switch (update.Key)
                 {
                     case 1:
-                        animalFromDb.CategoryId = GetCategoryId(update.Value);
+                        animalFromDb.CategoryId = GetCategoryId(update.Value);  // catagory
                         break;
                     case 2:
                         animalFromDb.Name = update.Value;
@@ -319,7 +320,6 @@ namespace HumaneSociety
                         break;
                     default:
                         throw new InvalidOperationException();
-                        break;
                 }
             }
         }
@@ -363,7 +363,7 @@ namespace HumaneSociety
                         catch (InvalidOperationException e)
                         {
                             Console.WriteLine("The Catagory passed in does not exists.");
-                            return animalsFromDb;
+                            animalsFromDb = null;
                         }
                         break;
                     case 2:
@@ -389,8 +389,9 @@ namespace HumaneSociety
                         break;
                     default:
                         throw new InvalidOperationException();
-                        break;
                 }
+                if (animalsFromDb == null)
+                    break;
             }
 
             return animalsFromDb;
@@ -508,6 +509,7 @@ namespace HumaneSociety
             AnimalShot animalShot = new AnimalShot();
             Shot shotFromDb;
 
+            // See if shotName exists o/w create it.
             try
             {
                 shotFromDb = db.Shots.Where(s => s.Name == shotName).Single();
@@ -517,8 +519,7 @@ namespace HumaneSociety
                 // Add a new shot type
                 shotFromDb = new Shot();
                 shotFromDb.Name = shotName;
-                db.Shots.InsertOnSubmit(shotFromDb);
-                db.SubmitChanges();
+                AddShotType(shotFromDb);
             }
 
             animalShot.AnimalId = animal.AnimalId;
@@ -529,14 +530,19 @@ namespace HumaneSociety
             db.SubmitChanges();
         }
 
+        internal static void AddShotType(Shot shot)
+        {
+            db.Shots.InsertOnSubmit(shot);
+
+            db.SubmitChanges();
+        }
+
         internal static void RemoveShots(Animal animal)
         {
             var shots = GetShots(animal);
 
             foreach (AnimalShot shot in shots.ToList())
-            {
                 db.AnimalShots.DeleteOnSubmit(shot);
-            }
 
             db.SubmitChanges();
         }
