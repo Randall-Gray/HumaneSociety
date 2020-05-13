@@ -170,16 +170,40 @@ namespace HumaneSociety
             switch (crudOperation)
             {
                 case "create":
+                    AddEmployee(employee);      // no UserName, Password included.
                     break;
                 case "read":
+                    DisplayEmployee(employee);   // employee only contains EmployeeNumber
                     break;
                 case "update":
+                    UpdateEmployee(employee);   // no UserName, Password included
                     break;
                 case "delete":
+                    DeleteEmployee(employee);   // LastName and EmployeeNumber is given
                     break;
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        internal static void AddEmployee(Employee employee)      // no UserName, Password included.
+        {
+
+        }
+
+        internal static void DisplayEmployee(Employee employee)   // employee only contains EmployeeNumber
+        {
+
+        }
+
+        internal static void UpdateEmployee(Employee employee)   // no UserName, Password included
+        {
+
+        }
+
+        internal static void DeleteEmployee(Employee employee)   // LastName and EmployeeNumber is given
+        {
+
         }
 
         // TODO: Animal CRUD Operations
@@ -417,9 +441,31 @@ namespace HumaneSociety
             return db.AnimalShots.Where(s => s.AnimalId == animal.AnimalId);
         }
 
+        // Adds a shot to the AnimalShots table.
         internal static void UpdateShot(string shotName, Animal animal)
         {
-            throw new NotImplementedException();
+            AnimalShot animalShot = new AnimalShot();
+            Shot shotFromDb;
+
+            try
+            {
+                shotFromDb = db.Shots.Where(s => s.Name == shotName).Single();
+            }
+            catch (InvalidOperationException e)
+            {
+                // Add a new shot type
+                shotFromDb = new Shot();
+                shotFromDb.Name = shotName;
+                db.Shots.InsertOnSubmit(shotFromDb);
+                db.SubmitChanges();
+            }
+
+            animalShot.AnimalId = animal.AnimalId;
+            animalShot.ShotId = shotFromDb.ShotId;
+            animalShot.DateReceived = DateTime.Now;
+
+            db.AnimalShots.InsertOnSubmit(animalShot);
+            db.SubmitChanges();
         }
 
         internal static void RemoveShots(Animal animal)
