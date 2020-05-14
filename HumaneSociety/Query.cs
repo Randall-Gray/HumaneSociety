@@ -202,7 +202,7 @@ namespace HumaneSociety
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("No employee exists with that employee number.");
+                Console.WriteLine($"No employee exists with that {employee.EmployeeNumber} employee number.");
             }
         }
 
@@ -222,7 +222,7 @@ namespace HumaneSociety
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("No employee exists with that employee number.");
+                Console.WriteLine($"No employee exists with that {employee.EmployeeNumber} employee number.");
             }
         }
 
@@ -241,7 +241,7 @@ namespace HumaneSociety
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("No employee exists with that last name and employee number.");
+                Console.WriteLine($"No employee exists with last name {employee.LastName} and {employee.EmployeeNumber} employee number.");
             }
         }
 
@@ -259,9 +259,20 @@ namespace HumaneSociety
         // Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
-            db.Animals.InsertOnSubmit(animal);
+            // Get animal a room
+            Room roomFromDb = db.Rooms.Where(r => r.AnimalId == default(int)).FirstOrDefault();
+            if (roomFromDb == null)
+            {
+                Console.WriteLine($"No empty room for animal {animal.Name}.");
+                Console.WriteLine("The Animal cannot be added.");
+            }
+            else
+            {
+                roomFromDb.AnimalId = animal.AnimalId;
+                db.Animals.InsertOnSubmit(animal);
 
-            db.SubmitChanges();
+                db.SubmitChanges();
+            }
         }
 
         internal static Animal GetAnimalByID(int id)
@@ -281,7 +292,7 @@ namespace HumaneSociety
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine("No animals have an AnimalId that matches the AnimalId passed in.");
+                Console.WriteLine($"No animals have an AnimalId that matches the {animalId} AnimalId passed in.");
                 Console.WriteLine("No updates have been made.");
                 return;
             }
@@ -362,7 +373,7 @@ namespace HumaneSociety
                         }
                         catch (InvalidOperationException e)
                         {
-                            Console.WriteLine("The Catagory passed in does not exists.");
+                            Console.WriteLine($"The {update.Value} Catagory passed in does not exists.");
                             animalsFromDb = null;
                         }
                         break;
@@ -406,8 +417,8 @@ namespace HumaneSociety
                 return categoryFromDb.CategoryId;
             }
             catch (InvalidOperationException e)
-            { 
-                throw new InvalidOperationException();
+            {
+                throw new NullReferenceException();
             }
         }
 
@@ -438,7 +449,7 @@ namespace HumaneSociety
             }
             catch (InvalidOperationException e)
             {
-                throw new InvalidOperationException();
+                throw new NullReferenceException();
             }
         }
 
