@@ -415,7 +415,7 @@ namespace HumaneSociety
 
         internal static Room GetRoom(int animalId)
         {
-            Room roomFromDb = db.Rooms.Where(r => r.AnimalId == animalId).Single();
+            Room roomFromDb = db.Rooms.Where(r => r.AnimalId == animalId).FirstOrDefault();
 
             return roomFromDb;
         }
@@ -505,7 +505,7 @@ namespace HumaneSociety
 
         internal static Adoption GetAdoption(int animalId)
         {
-            var adoptionFromDb = db.Adoptions.Where(a => a.AnimalId == animalId).Single();
+            var adoptionFromDb = db.Adoptions.Where(a => a.AnimalId == animalId).FirstOrDefault();
 
             return adoptionFromDb;
         }
