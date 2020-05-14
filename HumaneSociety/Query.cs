@@ -259,20 +259,11 @@ namespace HumaneSociety
         // Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
-            // Get animal a room
-            Room roomFromDb = db.Rooms.Where(r => r.AnimalId == default(int)).FirstOrDefault();
-            if (roomFromDb == null)
-            {
-                Console.WriteLine($"No empty room for animal {animal.Name}.");
-                Console.WriteLine("The Animal cannot be added.");
-            }
-            else
-            {
-                roomFromDb.AnimalId = animal.AnimalId;
-                db.Animals.InsertOnSubmit(animal);
+            AddRoom(animal.AnimalId);
 
-                db.SubmitChanges();
-            }
+            db.Animals.InsertOnSubmit(animal);
+
+            db.SubmitChanges();
         }
 
         internal static Animal GetAnimalByID(int id)
@@ -342,7 +333,7 @@ namespace HumaneSociety
             if (animalFromDb != null)
             {
                 // Remove all references to this animal from db.
-                RemoveAnimalFromRoom(animalFromDb.AnimalId);
+                RemoveRoom(animalFromDb.AnimalId);
                 RemoveShots(animalFromDb);
                 Adoption adoptionFromDb = GetAdoption(animalFromDb.AnimalId);
                 if (adoptionFromDb != null)
@@ -429,13 +420,24 @@ namespace HumaneSociety
             return roomFromDb;
         }
 
-        internal static void RemoveAnimalFromRoom(int animalId)
+        internal static void AddRoom(int animalId)
+        {
+            Room room = new Room();
+
+            room.RoomNumber = db.Rooms.ToList().Count() + 1;
+            room.AnimalId = animalId;
+
+            db.Rooms.InsertOnSubmit(room);
+            db.SubmitChanges();
+        }
+
+        internal static void RemoveRoom(int animalId)
         {
             Room roomFromDb = GetRoom(animalId);
 
             if (roomFromDb != null)
             {
-                roomFromDb.AnimalId = default(int);
+                db.Rooms.DeleteOnSubmit(roomFromDb);
                 db.SubmitChanges();
             }
         }
