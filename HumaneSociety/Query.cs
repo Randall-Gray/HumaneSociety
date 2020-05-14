@@ -259,11 +259,11 @@ namespace HumaneSociety
         // Animal CRUD Operations
         internal static void AddAnimal(Animal animal)
         {
-            AddRoom(animal.AnimalId);
-
             db.Animals.InsertOnSubmit(animal);
 
             db.SubmitChanges();
+
+            AddRoom(animal.AnimalId);   // Add animal first o/w AnimalId isn't valid.
         }
 
         internal static Animal GetAnimalByID(int id)
